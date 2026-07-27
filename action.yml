@@ -9,12 +9,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Report v2 canary state
+    - name: Report v3 canary state
       shell: bash
       env:
         INPUT_CANARY: ${{ inputs.canary }}
       run: |
-        echo "dependency_action_version=v2"
+        echo "dependency_action_version=v3"
         if [[ -n "${INPUT_CANARY}" ]]; then
           echo "dependency_canary_present=yes"
         else
