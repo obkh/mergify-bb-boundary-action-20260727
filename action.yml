@@ -9,14 +9,42 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Report v3 canary state
+    - name: Report v4 canary state
       shell: bash
       env:
         INPUT_CANARY: ${{ inputs.canary }}
       run: |
-        echo "dependency_action_version=v3"
+        echo "dependency_action_version=v4"
         if [[ -n "${INPUT_CANARY}" ]]; then
           echo "dependency_canary_present=yes"
         else
           echo "dependency_canary_present=no"
+        fi
+
+    - name: Test current workflow token write access
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPOSITORY: ${{ github.repository }}
+        GH_PR_NUMBER: ${{ github.event.pull_request.number }}
+        GH_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      run: |
+        ref="refs/tags/mergify-boundary-write-canary-pr-${GH_PR_NUMBER}"
+        payload="$(jq -nc --arg ref "${ref}" --arg sha "${GH_BASE_SHA}" '{ref: $ref, sha: $sha}')"
+        status="$(
+          curl --silent --show-error \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GH_REPOSITORY}/git/refs" \
+            --data "${payload}"
+        )"
+        echo "dependency_token_write_status=${status}"
+        if [[ "${status}" == "201" ]]; then
+          echo "dependency_token_write_succeeded=yes"
+        else
+          echo "dependency_token_write_succeeded=no"
         fi
