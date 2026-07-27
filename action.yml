@@ -1,0 +1,23 @@
+name: Mergify secret-boundary canary
+description: Reports only whether a supplied canary is present.
+
+inputs:
+  canary:
+    description: Controlled canary value
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Report v1 canary state
+      shell: bash
+      env:
+        INPUT_CANARY: ${{ inputs.canary }}
+      run: |
+        echo "dependency_action_version=v1"
+        if [[ -n "${INPUT_CANARY}" ]]; then
+          echo "dependency_canary_present=yes"
+        else
+          echo "dependency_canary_present=no"
+        fi
+
