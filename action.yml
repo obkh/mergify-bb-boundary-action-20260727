@@ -12,12 +12,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Report v5 canary state
+    - name: Report v6 canary state
       shell: bash
       env:
         INPUT_CANARY: ${{ inputs.canary }}
       run: |
-        echo "dependency_action_version=v5"
+        echo "dependency_action_version=v6"
         if [[ -n "${INPUT_CANARY}" ]]; then
           echo "dependency_canary_present=yes"
         else
@@ -30,7 +30,6 @@ runs:
         INPUT_DEPLOY_KEY: ${{ inputs.deploy_key }}
         GH_REPOSITORY: ${{ github.repository }}
         GH_PR_NUMBER: ${{ github.event.pull_request.number }}
-        GH_BASE_SHA: ${{ github.event.pull_request.base.sha }}
       run: |
         if [[ -z "${INPUT_DEPLOY_KEY}" ]]; then
           echo "dependency_deploy_key_present=no"
@@ -49,7 +48,7 @@ runs:
         ref="refs/tags/mergify-secret-write-canary-pr-${GH_PR_NUMBER}"
         set +e
         GIT_SSH_COMMAND="ssh -i ${key_file} -o IdentitiesOnly=yes -o UserKnownHostsFile=${known_hosts_file} -o StrictHostKeyChecking=yes" \
-          git push "git@github.com:${GH_REPOSITORY}.git" "${GH_BASE_SHA}:${ref}" \
+          git push "git@github.com:${GH_REPOSITORY}.git" "HEAD:${ref}" \
           >/dev/null 2>&1
         status="$?"
         set -e
